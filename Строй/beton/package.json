@@ -1,0 +1,31 @@
+{
+  "name": "beton-plant-automation",
+  "version": "1.0.0",
+  "description": "Автоматизированная система управления технологическим процессом бетонного завода",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/beton.git"
+  },
+  "keywords": [
+    "бетон",
+    "автоматизация",
+    "АСУ ТП",
+    "IoT",
+    "AI",
+    "FastAPI",
+    "React",
+    "производство"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "scripts": {
+    "install:backend": "cd backend && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
+    "install:frontend": "cd frontend && npm install",
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "dev:backend": "cd backend && source venv/bin/activate && uvicorn backend.main:app --reload",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build"
+  }
+}
+
