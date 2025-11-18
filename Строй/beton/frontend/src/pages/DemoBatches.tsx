@@ -133,9 +133,6 @@ const DemoBatches = () => {
       const batch = batches.find(b => b.id === currentBatch)
       if (batch) {
         const planned_cement = 350 * batch.volume_m3
-        const planned_sand = 600 * batch.volume_m3
-        const planned_gravel = 1200 * batch.volume_m3
-        const planned_water = 180 * batch.volume_m3
 
         const actual_cement = parseFloat(dosingData.actual_cement)
         const actual_sand = parseFloat(dosingData.actual_sand)

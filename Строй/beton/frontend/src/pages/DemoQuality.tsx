@@ -3,14 +3,23 @@ import { Link } from 'react-router-dom'
 import { QualityStatus } from '../types'
 
 const DemoQuality = () => {
-  const [qualityChecks, setQualityChecks] = useState([
+  const [qualityChecks, setQualityChecks] = useState<Array<{
+    id: number
+    batch_id: number
+    mobility_cm: number | null
+    strength_mpa: number | null
+    moisture_pct: number | null
+    deviations: string | null
+    status: QualityStatus
+    checked_at: string
+  }>>([
     {
       id: 1,
       batch_id: 1,
       mobility_cm: 12.5,
       strength_mpa: 28.5,
       moisture_pct: 5.2,
-      deviations: null as string | null,
+      deviations: null,
       status: QualityStatus.APPROVED,
       checked_at: '2024-11-18T14:30:00',
     },
@@ -18,7 +27,7 @@ const DemoQuality = () => {
       id: 2,
       batch_id: 2,
       mobility_cm: 10.0,
-      strength_mpa: null as number | null,
+      strength_mpa: null,
       moisture_pct: 4.8,
       deviations: 'Требуется дополнительная проверка прочности',
       status: QualityStatus.PENDING,

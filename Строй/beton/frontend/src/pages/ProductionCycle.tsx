@@ -14,6 +14,8 @@ const ProductionCycle = () => {
       duration: number
       status: 'pending' | 'active' | 'completed'
       description: string
+      iot?: string[]
+      ai?: string
     }>
   } | null>(null)
 
@@ -79,8 +81,12 @@ const ProductionCycle = () => {
       step: 0,
       timeElapsed: 0,
       steps: cycleSteps.map((step, index) => ({
-        ...step,
-        status: index === 0 ? 'active' : 'pending' as const,
+        name: step.name,
+        duration: step.duration,
+        description: step.description,
+        iot: step.iot,
+        ai: step.ai,
+        status: (index === 0 ? 'active' : 'pending') as 'pending' | 'active' | 'completed',
       })),
     }
     setCurrentBatch(newBatch)

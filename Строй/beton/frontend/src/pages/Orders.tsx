@@ -35,15 +35,15 @@ const Orders = () => {
     },
   })
 
-  const updateOrderMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      const response = await apiClient.patch(`/orders/${id}`, data)
-      return response.data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] })
-    },
-  })
+  // const updateOrderMutation = useMutation({
+  //   mutationFn: async ({ id, data }: { id: number; data: any }) => {
+  //     const response = await apiClient.patch(`/orders/${id}`, data)
+  //     return response.data
+  //   },
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ['orders'] })
+  //   },
+  // })
 
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
