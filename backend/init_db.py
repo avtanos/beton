@@ -54,6 +54,58 @@ def init_db():
             )
             db.add(technologist)
         
+        # Создание мастера смены
+        shift_master = db.query(User).filter(User.username == "master").first()
+        if not shift_master:
+            shift_master = User(
+                username="master",
+                email="master@beton.ru",
+                full_name="Мастер смены",
+                role=UserRole.SHIFT_MASTER,
+                hashed_password=auth.get_password_hash("master123"),
+                is_active=True
+            )
+            db.add(shift_master)
+        
+        # Создание лаборанта
+        laboratory = db.query(User).filter(User.username == "lab").first()
+        if not laboratory:
+            laboratory = User(
+                username="lab",
+                email="lab@beton.ru",
+                full_name="Лаборант",
+                role=UserRole.LABORATORY,
+                hashed_password=auth.get_password_hash("lab123"),
+                is_active=True
+            )
+            db.add(laboratory)
+        
+        # Создание начальника производства
+        production_head = db.query(User).filter(User.username == "head").first()
+        if not production_head:
+            production_head = User(
+                username="head",
+                email="head@beton.ru",
+                full_name="Начальник производства",
+                role=UserRole.PRODUCTION_HEAD,
+                hashed_password=auth.get_password_hash("head123"),
+                is_active=True
+            )
+            db.add(production_head)
+        
+        # Создание логиста
+        logistics = db.query(User).filter(User.username == "logistics").first()
+        if not logistics:
+            logistics = User(
+                username="logistics",
+                email="logistics@beton.ru",
+                full_name="Логист",
+                role=UserRole.LOGISTICS,
+                hashed_password=auth.get_password_hash("log123"),
+                is_active=True
+            )
+            db.add(logistics)
+        
         # Создание рецептур
         recipe_b25 = db.query(Recipe).filter(Recipe.code == "B25").first()
         if not recipe_b25:
@@ -171,6 +223,10 @@ def init_db():
         print("  admin / admin123 (Администратор)")
         print("  operator / operator123 (Оператор)")
         print("  technologist / tech123 (Технолог)")
+        print("  master / master123 (Мастер смены)")
+        print("  lab / lab123 (Лаборант)")
+        print("  head / head123 (Начальник производства)")
+        print("  logistics / log123 (Логист)")
         
     except Exception as e:
         db.rollback()

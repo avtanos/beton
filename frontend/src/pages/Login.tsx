@@ -2,6 +2,17 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 
+// Тестовые пользователи для быстрого входа
+const TEST_USERS = [
+  { username: 'admin', password: 'admin123', role: 'Администратор', color: 'bg-red-100 hover:bg-red-200 border-red-300' },
+  { username: 'head', password: 'head123', role: 'Начальник производства', color: 'bg-purple-100 hover:bg-purple-200 border-purple-300' },
+  { username: 'master', password: 'master123', role: 'Мастер смены', color: 'bg-blue-100 hover:bg-blue-200 border-blue-300' },
+  { username: 'operator', password: 'operator123', role: 'Оператор АСУ ТП', color: 'bg-green-100 hover:bg-green-200 border-green-300' },
+  { username: 'technologist', password: 'tech123', role: 'Технолог', color: 'bg-yellow-100 hover:bg-yellow-200 border-yellow-300' },
+  { username: 'lab', password: 'lab123', role: 'Лаборант', color: 'bg-indigo-100 hover:bg-indigo-200 border-indigo-300' },
+  { username: 'logistics', password: 'log123', role: 'Логист', color: 'bg-pink-100 hover:bg-pink-200 border-pink-300' },
+]
+
 const Login = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -9,6 +20,22 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const { login } = useAuthStore()
   const navigate = useNavigate()
+
+  const handleQuickLogin = async (testUser: typeof TEST_USERS[0]) => {
+    setUsername(testUser.username)
+    setPassword(testUser.password)
+    setError('')
+    setLoading(true)
+
+    try {
+      await login(testUser.username, testUser.password)
+      navigate('/')
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Ошибка входа')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,6 +71,35 @@ const Login = () => {
             </Link>
           </div>
         </div>
+
+        {/* Быстрый вход для тестовых пользователей */}
+        <div className="mt-6">
+          <p className="text-sm text-gray-600 mb-3 text-center">Быстрый вход (тестовые пользователи):</p>
+          <div className="grid grid-cols-2 gap-2">
+            {TEST_USERS.map((user) => (
+              <button
+                key={user.username}
+                type="button"
+                onClick={() => handleQuickLogin(user)}
+                disabled={loading}
+                className={`${user.color} border-2 rounded-lg p-2 text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                <div className="font-semibold">{user.role}</div>
+                <div className="text-gray-600">{user.username}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-gray-50 text-gray-500">Или войдите вручную</span>
+          </div>
+        </div>
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
