@@ -33,20 +33,66 @@ jobs:
       - name: Verify project structure
         run: |
           echo "Checking project structure..."
+          pwd
+          ls -la
           if [ ! -f "frontend/package.json" ]; then
             echo "Error: frontend/package.json not found!"
             exit 1
           fi
           echo "Project name: $(cat frontend/package.json | grep '"name"' | head -1)"
           echo "Build script: $(cat frontend/package.json | grep '"build:prod"')"
+          echo "Checking for react-scripts..."
+          if grep -q "react-scripts" frontend/package.json; then
+            echo "ERROR: react-scripts found in package.json! This is wrong project."
+            exit 1
+          fi
+          echo "Checking for vite..."
+          if ! grep -q "vite" frontend/package.json; then
+            echo "ERROR: vite not found in package.json!"
+            exit 1
+          fi
+          echo "Verifying project name is beton-frontend..."
+          PROJECT_NAME=$(cat frontend/package.json | grep '"name"' | head -1 | cut -d'"' -f4)
+          if [ "$PROJECT_NAME" != "beton-frontend" ]; then
+            echo "ERROR: Wrong project name! Expected 'beton-frontend', got '$PROJECT_NAME'"
+            echo "Full package.json name line: $(cat frontend/package.json | grep '"name"')"
+            exit 1
+          fi
+          echo "✓ Project verification passed: $PROJECT_NAME"
 
       - name: Install dependencies
         working-directory: ./frontend
-        run: npm ci
+        run: |
+          echo "Installing dependencies in frontend directory..."
+          echo "Current directory: $(pwd)"
+          npm ci
+          echo "Verifying installed packages..."
+          if npm list vite > /dev/null 2>&1; then
+            echo "✓ Vite is installed"
+          else
+            echo "ERROR: Vite is not installed!"
+            exit 1
+          fi
 
       - name: Build
         working-directory: ./frontend
         run: |
+          echo "Current directory: $(pwd)"
+          echo "Project name from package.json: $(cat package.json | grep '"name"')"
+          echo "Verifying this is beton-frontend project..."
+          PROJECT_NAME=$(cat package.json | grep '"name"' | head -1 | cut -d'"' -f4)
+          if [ "$PROJECT_NAME" != "beton-frontend" ]; then
+            echo "ERROR: Wrong project! Expected 'beton-frontend', got '$PROJECT_NAME'"
+            echo "Full package.json content:"
+            cat package.json
+            exit 1
+          fi
+          echo "✓ Confirmed: Building $PROJECT_NAME"
+          echo "Verifying vite is installed..."
+          if ! npm list vite > /dev/null 2>&1; then
+            echo "ERROR: Vite is not installed!"
+            exit 1
+          fi
           echo "Building frontend with Vite..."
           npm run build:prod
         env:
@@ -60,6 +106,20 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
+
+      - name: Verify build output
+        working-directory: ./frontend
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "ERROR: dist directory not found after build!"
+            exit 1
+          fi
+          if [ ! -f "dist/index.html" ]; then
+            echo "ERROR: dist/index.html not found!"
+            exit 1
+          fi
+          echo "✓ Build output verified"
+          ls -la dist/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

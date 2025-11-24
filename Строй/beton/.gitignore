@@ -46,6 +46,9 @@ Thumbs.db
 # Frontend build artifacts
 frontend/dist/
 frontend/.vite/
+# Compiled JS files (should only have TS/TSX)
+frontend/src/**/*.js
+frontend/src/**/*.js.map
 
 # Backend
 backend/venv/
