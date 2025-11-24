@@ -30,9 +30,10 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "build:prod": "tsc && vite build --config vite.config.production.ts",
+    "build": "tsc --noEmit false && vite build",
+    "build:prod": "tsc --noEmit false && vite build --config vite.config.production.ts",
     "preview": "vite preview",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "type-check": "tsc --noEmit"
   }
 }
