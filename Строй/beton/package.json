@@ -1,5 +1,5 @@
 {
-  "name": "beton-plant-automation",
+  "name": "beton",
   "version": "1.0.0",
   "description": "Автоматизированная система управления технологическим процессом бетонного завода",
   "private": true,

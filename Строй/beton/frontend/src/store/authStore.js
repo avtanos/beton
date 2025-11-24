@@ -1,0 +1,29 @@
+import { create } from 'zustand';
+import apiClient from '../api/client';
+export const useAuthStore = create((set) => ({
+    user: null,
+    isAuthenticated: !!localStorage.getItem('access_token'),
+    login: async (username, password) => {
+        const response = await apiClient.post('/auth/login', {
+            username,
+            password,
+        });
+        const { access_token } = response.data;
+        localStorage.setItem('access_token', access_token);
+        await useAuthStore.getState().fetchCurrentUser();
+        set({ isAuthenticated: true });
+    },
+    logout: () => {
+        localStorage.removeItem('access_token');
+        set({ user: null, isAuthenticated: false });
+    },
+    fetchCurrentUser: async () => {
+        try {
+            const response = await apiClient.get('/auth/me');
+            set({ user: response.data });
+        }
+        catch (error) {
+            console.error('Failed to fetch current user:', error);
+        }
+    },
+}));
