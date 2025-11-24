@@ -32,33 +32,58 @@ jobs:
 
       - name: Verify project structure
         run: |
-          echo "Checking project structure..."
-          pwd
+          echo "=== Checking project structure ==="
+          echo "Current directory: $(pwd)"
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref }}"
+          echo "Listing root directory:"
           ls -la
-          if [ ! -f "frontend/package.json" ]; then
-            echo "Error: frontend/package.json not found!"
+          echo ""
+          echo "Checking for frontend directory..."
+          if [ ! -d "frontend" ]; then
+            echo "ERROR: frontend directory not found!"
             exit 1
           fi
-          echo "Project name: $(cat frontend/package.json | grep '"name"' | head -1)"
-          echo "Build script: $(cat frontend/package.json | grep '"build:prod"')"
-          echo "Checking for react-scripts..."
+          echo "Checking for frontend/package.json..."
+          if [ ! -f "frontend/package.json" ]; then
+            echo "ERROR: frontend/package.json not found!"
+            exit 1
+          fi
+          echo ""
+          echo "=== Reading frontend/package.json ==="
+          cat frontend/package.json
+          echo ""
+          echo "=== Verifying project ==="
+          PROJECT_NAME=$(cat frontend/package.json | grep '"name"' | head -1 | sed 's/.*"name": *"\([^"]*\)".*/\1/')
+          echo "Project name found: '$PROJECT_NAME'"
+          if [ "$PROJECT_NAME" != "beton-frontend" ]; then
+            echo "ERROR: Wrong project name! Expected 'beton-frontend', got '$PROJECT_NAME'"
+            echo "This might be the wrong repository or branch!"
+            exit 1
+          fi
+          echo "✓ Project name verified: $PROJECT_NAME"
+          echo ""
+          echo "Checking build script..."
+          BUILD_SCRIPT=$(cat frontend/package.json | grep '"build:prod"' | head -1)
+          echo "Build script: $BUILD_SCRIPT"
+          if ! echo "$BUILD_SCRIPT" | grep -q "vite"; then
+            echo "ERROR: build:prod does not use vite!"
+            exit 1
+          fi
+          echo "Checking for react-scripts (should NOT exist)..."
           if grep -q "react-scripts" frontend/package.json; then
             echo "ERROR: react-scripts found in package.json! This is wrong project."
             exit 1
           fi
-          echo "Checking for vite..."
+          echo "✓ No react-scripts found"
+          echo "Checking for vite (should exist)..."
           if ! grep -q "vite" frontend/package.json; then
             echo "ERROR: vite not found in package.json!"
             exit 1
           fi
-          echo "Verifying project name is beton-frontend..."
-          PROJECT_NAME=$(cat frontend/package.json | grep '"name"' | head -1 | cut -d'"' -f4)
-          if [ "$PROJECT_NAME" != "beton-frontend" ]; then
-            echo "ERROR: Wrong project name! Expected 'beton-frontend', got '$PROJECT_NAME'"
-            echo "Full package.json name line: $(cat frontend/package.json | grep '"name"')"
-            exit 1
-          fi
-          echo "✓ Project verification passed: $PROJECT_NAME"
+          echo "✓ Vite found"
+          echo ""
+          echo "=== All verifications passed ==="
 
       - name: Install dependencies
         working-directory: ./frontend
@@ -77,23 +102,44 @@ jobs:
       - name: Build
         working-directory: ./frontend
         run: |
+          echo "=== Build Step ==="
           echo "Current directory: $(pwd)"
-          echo "Project name from package.json: $(cat package.json | grep '"name"')"
-          echo "Verifying this is beton-frontend project..."
-          PROJECT_NAME=$(cat package.json | grep '"name"' | head -1 | cut -d'"' -f4)
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo ""
+          echo "=== Reading package.json ==="
+          cat package.json
+          echo ""
+          echo "=== Verifying project ==="
+          PROJECT_NAME=$(cat package.json | grep '"name"' | head -1 | sed 's/.*"name": *"\([^"]*\)".*/\1/')
+          echo "Project name: '$PROJECT_NAME'"
           if [ "$PROJECT_NAME" != "beton-frontend" ]; then
             echo "ERROR: Wrong project! Expected 'beton-frontend', got '$PROJECT_NAME'"
-            echo "Full package.json content:"
-            cat package.json
+            echo "This might be the wrong repository or branch!"
+            echo "Repository: ${{ github.repository }}"
+            echo "Branch: ${{ github.ref_name }}"
             exit 1
           fi
           echo "✓ Confirmed: Building $PROJECT_NAME"
-          echo "Verifying vite is installed..."
-          if ! npm list vite > /dev/null 2>&1; then
-            echo "ERROR: Vite is not installed!"
+          echo ""
+          echo "=== Checking build script ==="
+          BUILD_SCRIPT=$(cat package.json | grep -A 1 '"build:prod"' | grep -v '"build:prod"' | sed 's/.*"\(.*\)".*/\1/')
+          echo "Build script command: $BUILD_SCRIPT"
+          if ! echo "$BUILD_SCRIPT" | grep -q "vite"; then
+            echo "ERROR: build:prod does not use vite! Script: $BUILD_SCRIPT"
             exit 1
           fi
-          echo "Building frontend with Vite..."
+          echo "✓ Build script verified"
+          echo ""
+          echo "=== Verifying vite is installed ==="
+          if ! npm list vite > /dev/null 2>&1; then
+            echo "ERROR: Vite is not installed!"
+            npm list | head -20
+            exit 1
+          fi
+          echo "✓ Vite is installed"
+          echo ""
+          echo "=== Starting build ==="
           npm run build:prod
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL || '/api' }}
