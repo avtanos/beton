@@ -171,7 +171,9 @@ jobs:
           fi
           echo ""
           echo "=== Installing fresh dependencies ==="
-          npm install --no-audit --no-fund --legacy-peer-deps
+          echo "Installing all dependencies (including devDependencies)..."
+          echo "NODE_ENV is set to: $NODE_ENV"
+          NODE_ENV="" npm install --no-audit --no-fund --legacy-peer-deps
           echo ""
           echo "=== Verifying installed packages ==="
           echo "Checking for vite..."
@@ -182,7 +184,13 @@ jobs:
             echo "ERROR: Vite is not installed!"
             echo "Installed packages:"
             npm list --depth=0 | head -20
-            exit 1
+            echo "Trying to install vite explicitly..."
+            npm install vite@^5.0.8 --save-dev --no-audit --no-fund --legacy-peer-deps
+            npm list vite --depth=0
+            if ! npm list vite > /dev/null 2>&1; then
+              echo "ERROR: Failed to install vite!"
+              exit 1
+            fi
           fi
           echo ""
           echo "Checking for react-scripts (should NOT be installed)..."
@@ -286,17 +294,27 @@ jobs:
           echo "=== Verifying vite is installed ==="
           if [ ! -d "node_modules" ]; then
             echo "WARNING: node_modules directory not found! Installing dependencies..."
-            npm install --no-audit --no-fund --legacy-peer-deps
+            NODE_ENV="" npm install --no-audit --no-fund --legacy-peer-deps
           fi
           if ! npm list vite > /dev/null 2>&1; then
-            echo "ERROR: Vite is not installed!"
-            echo "Installed packages:"
+            echo "WARNING: Vite is not installed! Installing all dependencies..."
+            echo "Installed packages before:"
+            npm list --depth=0 | head -20 || echo "No packages installed"
+            echo "Installing with NODE_ENV unset to ensure devDependencies are installed..."
+            NODE_ENV="" npm install --no-audit --no-fund --legacy-peer-deps
+            echo "Installed packages after:"
             npm list --depth=0 | head -20
-            echo "Installing vite and dependencies..."
-            npm install --no-audit --no-fund --legacy-peer-deps
+            if ! npm list vite > /dev/null 2>&1; then
+              echo "ERROR: Vite is still not installed after npm install!"
+              echo "Trying to install vite explicitly..."
+              npm install vite@^5.0.8 --save-dev --no-audit --no-fund --legacy-peer-deps
+            fi
           fi
           echo "✓ Vite is installed"
           npm list vite --depth=0
+          echo ""
+          echo "=== Verifying all devDependencies ==="
+          npm list --depth=0 | grep -E "vite|@vitejs|typescript|eslint" || echo "Some dev dependencies may be missing"
           echo ""
           echo "=== Checking for react-scripts (should NOT be installed) ==="
           if npm list react-scripts > /dev/null 2>&1; then
