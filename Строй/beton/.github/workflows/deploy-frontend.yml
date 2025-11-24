@@ -22,6 +22,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fail if wrong repository
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Expected repository should contain 'beton'"
+          if [[ ! "${{ github.repository }}" =~ .*beton.* ]]; then
+            echo "ERROR: This workflow is running in the wrong repository!"
+            echo "Current: ${{ github.repository }}"
+            echo "Expected: repository containing 'beton'"
+            exit 1
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -88,16 +101,32 @@ jobs:
       - name: Install dependencies
         working-directory: ./frontend
         run: |
-          echo "Installing dependencies in frontend directory..."
+          echo "=== Installing dependencies ==="
           echo "Current directory: $(pwd)"
-          npm ci
-          echo "Verifying installed packages..."
+          echo "Clearing npm cache to avoid conflicts..."
+          npm cache clean --force || true
+          echo "Installing dependencies..."
+          npm ci --no-audit --no-fund
+          echo ""
+          echo "=== Verifying installed packages ==="
+          echo "Checking for vite..."
           if npm list vite > /dev/null 2>&1; then
             echo "✓ Vite is installed"
+            npm list vite
           else
             echo "ERROR: Vite is not installed!"
+            echo "Installed packages:"
+            npm list --depth=0 | head -20
             exit 1
           fi
+          echo ""
+          echo "Checking for react-scripts (should NOT be installed)..."
+          if npm list react-scripts > /dev/null 2>&1; then
+            echo "ERROR: react-scripts is installed! This is wrong."
+            npm list react-scripts
+            exit 1
+          fi
+          echo "✓ react-scripts is NOT installed (correct)"
 
       - name: Build
         working-directory: ./frontend
@@ -139,8 +168,21 @@ jobs:
           fi
           echo "✓ Vite is installed"
           echo ""
+          echo "=== Final verification before build ==="
+          echo "Checking npm scripts..."
+          npm run --silent 2>&1 | grep build:prod || echo "No build:prod script found"
+          echo ""
+          echo "Checking what 'npm run build:prod' will execute..."
+          cat package.json | grep -A 2 '"build:prod"'
+          echo ""
           echo "=== Starting build ==="
-          npm run build:prod
+          echo "Executing: npm run build:prod"
+          npm run build:prod 2>&1 | head -50 || {
+            echo "Build failed! Checking what happened..."
+            echo "Package.json content:"
+            cat package.json
+            exit 1
+          }
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL || '/api' }}
           VITE_BASE_PATH: /beton/
