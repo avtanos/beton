@@ -1,0 +1,268 @@
+name: Deploy Frontend to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fail if wrong repository
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Expected repository should contain 'beton'"
+          if [[ ! "${{ github.repository }}" =~ .*beton.* ]]; then
+            echo "ERROR: This workflow is running in the wrong repository!"
+            echo "Current: ${{ github.repository }}"
+            echo "Expected: repository containing 'beton'"
+            exit 1
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          # Не используем кэш, чтобы избежать проблем со старыми данными
+          # cache: 'npm'
+          # cache-dependency-path: Строй/beton/frontend/package-lock.json
+
+      - name: Verify project structure
+        run: |
+          echo "=== Checking project structure ==="
+          echo "Current directory: $(pwd)"
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref }}"
+          echo "Listing root directory:"
+          ls -la
+          echo ""
+          echo "Checking for Строй/beton directory..."
+          if [ ! -d "Строй/beton" ]; then
+            echo "ERROR: Строй/beton directory not found!"
+            echo "Available directories:"
+            ls -la
+            exit 1
+          fi
+          echo "Checking for Строй/beton/frontend directory..."
+          if [ ! -d "Строй/beton/frontend" ]; then
+            echo "ERROR: Строй/beton/frontend directory not found!"
+            exit 1
+          fi
+          echo "Checking for Строй/beton/frontend/package.json..."
+          if [ ! -f "Строй/beton/frontend/package.json" ]; then
+            echo "ERROR: Строй/beton/frontend/package.json not found!"
+            exit 1
+          fi
+          echo ""
+          echo "=== Reading Строй/beton/frontend/package.json ==="
+          cat "Строй/beton/frontend/package.json"
+          echo ""
+          echo "=== Verifying project ==="
+          PROJECT_NAME=$(cat "Строй/beton/frontend/package.json" | grep '"name"' | head -1 | sed 's/.*"name": *"\([^"]*\)".*/\1/')
+          echo "Project name found: '$PROJECT_NAME'"
+          if [ "$PROJECT_NAME" != "beton-frontend" ]; then
+            echo "ERROR: Wrong project name! Expected 'beton-frontend', got '$PROJECT_NAME'"
+            echo "This might be the wrong repository or branch!"
+            exit 1
+          fi
+          echo "✓ Project name verified: $PROJECT_NAME"
+          echo ""
+          echo "Checking build script..."
+          BUILD_SCRIPT=$(cat "Строй/beton/frontend/package.json" | grep '"build:prod"' | head -1)
+          echo "Build script: $BUILD_SCRIPT"
+          if ! echo "$BUILD_SCRIPT" | grep -q "vite"; then
+            echo "ERROR: build:prod does not use vite!"
+            exit 1
+          fi
+          echo "Checking for react-scripts (should NOT exist)..."
+          if grep -q "react-scripts" "Строй/beton/frontend/package.json"; then
+            echo "ERROR: react-scripts found in package.json! This is wrong project."
+            exit 1
+          fi
+          echo "✓ No react-scripts found"
+          echo "Checking for vite (should exist)..."
+          if ! grep -q "vite" "Строй/beton/frontend/package.json"; then
+            echo "ERROR: vite not found in package.json!"
+            exit 1
+          fi
+          echo "✓ Vite found"
+          echo ""
+          echo "=== All verifications passed ==="
+
+      - name: Install dependencies
+        working-directory: ./Строй/beton/frontend
+        run: |
+          echo "=== Force clean install ==="
+          echo "Current directory: $(pwd)"
+          echo "Listing directory contents:"
+          ls -la
+          echo ""
+          echo "=== Removing old files ==="
+          echo "Removing node_modules..."
+          rm -rf node_modules || true
+          echo "Removing package-lock.json..."
+          rm -f package-lock.json || true
+          echo "Clearing npm cache completely..."
+          npm cache clean --force || true
+          echo ""
+          echo "=== Verifying package.json ==="
+          echo "Package.json content:"
+          cat package.json | head -10
+          echo ""
+          PROJECT_NAME=$(cat package.json | grep '"name"' | head -1 | sed 's/.*"name": *"\([^"]*\)".*/\1/')
+          echo "Project name: '$PROJECT_NAME'"
+          if [ "$PROJECT_NAME" != "beton-frontend" ]; then
+            echo "ERROR: Wrong project name! Expected 'beton-frontend', got '$PROJECT_NAME'"
+            exit 1
+          fi
+          echo ""
+          echo "=== Installing fresh dependencies ==="
+          npm install --no-audit --no-fund --legacy-peer-deps
+          echo ""
+          echo "=== Verifying installed packages ==="
+          echo "Checking for vite..."
+          if npm list vite > /dev/null 2>&1; then
+            echo "✓ Vite is installed"
+            npm list vite --depth=0
+          else
+            echo "ERROR: Vite is not installed!"
+            echo "Installed packages:"
+            npm list --depth=0 | head -20
+            exit 1
+          fi
+          echo ""
+          echo "Checking for react-scripts (should NOT be installed)..."
+          if npm list react-scripts > /dev/null 2>&1; then
+            echo "ERROR: react-scripts is installed! This is wrong."
+            npm list react-scripts
+            exit 1
+          fi
+          echo "✓ react-scripts is NOT installed (correct)"
+          echo ""
+          echo "=== Final package.json verification ==="
+          cat package.json | grep -E '"name"|"build:prod"'
+
+      - name: Build
+        working-directory: ./Строй/beton/frontend
+        run: |
+          echo "=== Build Step ==="
+          echo "Current directory: $(pwd)"
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo ""
+          echo "=== CRITICAL: Verifying we're in the right directory ==="
+          if [ ! -f "package.json" ]; then
+            echo "ERROR: package.json not found in current directory!"
+            echo "Current directory contents:"
+            ls -la
+            exit 1
+          fi
+          echo ""
+          echo "=== Reading package.json ==="
+          cat package.json
+          echo ""
+          echo "=== Verifying project ==="
+          PROJECT_NAME=$(cat package.json | grep '"name"' | head -1 | sed 's/.*"name": *"\([^"]*\)".*/\1/')
+          echo "Project name: '$PROJECT_NAME'"
+          if [ "$PROJECT_NAME" != "beton-frontend" ]; then
+            echo "ERROR: Wrong project! Expected 'beton-frontend', got '$PROJECT_NAME'"
+            echo "This might be the wrong repository or branch!"
+            echo "Repository: ${{ github.repository }}"
+            echo "Branch: ${{ github.ref_name }}"
+            echo "Current directory: $(pwd)"
+            echo "Directory contents:"
+            ls -la
+            exit 1
+          fi
+          echo "✓ Confirmed: Building $PROJECT_NAME"
+          echo ""
+          echo "=== Checking build script ==="
+          BUILD_SCRIPT=$(cat package.json | grep -A 1 '"build:prod"' | tail -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "Build script command: '$BUILD_SCRIPT'"
+          if ! echo "$BUILD_SCRIPT" | grep -q "vite"; then
+            echo "ERROR: build:prod does not use vite! Script: '$BUILD_SCRIPT'"
+            echo "Full scripts section:"
+            cat package.json | grep -A 10 '"scripts"'
+            exit 1
+          fi
+          echo "✓ Build script verified: uses vite"
+          echo ""
+          echo "=== Verifying vite is installed ==="
+          if ! npm list vite > /dev/null 2>&1; then
+            echo "ERROR: Vite is not installed!"
+            echo "Installed packages:"
+            npm list --depth=0 | head -20
+            exit 1
+          fi
+          echo "✓ Vite is installed"
+          echo ""
+          echo "=== Checking for react-scripts (should NOT be installed) ==="
+          if npm list react-scripts > /dev/null 2>&1; then
+            echo "ERROR: react-scripts is installed! This is wrong."
+            npm list react-scripts
+            exit 1
+          fi
+          echo "✓ react-scripts is NOT installed (correct)"
+          echo ""
+          echo "=== Starting build with Vite ==="
+          echo "Executing: npm run build:prod"
+          npm run build:prod
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL || '/api' }}
+          VITE_BASE_PATH: /beton/
+          NODE_ENV: production
+          CI: false
+          SKIP_PREFLIGHT_CHECK: true
+          DISABLE_ESLINT_PLUGIN: true
+          ESLINT_NO_DEV_ERRORS: true
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Verify build output
+        working-directory: ./Строй/beton/frontend
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "ERROR: dist directory not found after build!"
+            exit 1
+          fi
+          if [ ! -f "dist/index.html" ]; then
+            echo "ERROR: dist/index.html not found!"
+            exit 1
+          fi
+          echo "✓ Build output verified"
+          ls -la dist/
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './Строй/beton/frontend/dist'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
