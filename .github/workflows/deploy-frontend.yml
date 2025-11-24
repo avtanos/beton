@@ -53,29 +53,32 @@ jobs:
           echo "Listing root directory:"
           ls -la
           echo ""
-          echo "Checking for Строй/beton directory..."
-          if [ ! -d "Строй/beton" ]; then
-            echo "ERROR: Строй/beton directory not found!"
-            echo "Available directories:"
-            ls -la
-            exit 1
-          fi
-          echo "Checking for Строй/beton/frontend directory..."
-          if [ ! -d "Строй/beton/frontend" ]; then
-            echo "ERROR: Строй/beton/frontend directory not found!"
-            exit 1
-          fi
-          echo "Checking for Строй/beton/frontend/package.json..."
-          if [ ! -f "Строй/beton/frontend/package.json" ]; then
-            echo "ERROR: Строй/beton/frontend/package.json not found!"
+          echo "=== Finding frontend directory ==="
+          FRONTEND_DIR=""
+          if [ -d "Строй/beton/frontend" ]; then
+            FRONTEND_DIR="Строй/beton/frontend"
+            echo "Found: Строй/beton/frontend"
+          elif [ -d "frontend" ]; then
+            FRONTEND_DIR="frontend"
+            echo "Found: frontend (root level)"
+          else
+            echo "ERROR: frontend directory not found!"
+            echo "Searching for frontend directories:"
+            find . -type d -name "frontend" 2>/dev/null | head -10
             exit 1
           fi
           echo ""
-          echo "=== Reading Строй/beton/frontend/package.json ==="
-          cat "Строй/beton/frontend/package.json"
+          echo "Checking for $FRONTEND_DIR/package.json..."
+          if [ ! -f "$FRONTEND_DIR/package.json" ]; then
+            echo "ERROR: $FRONTEND_DIR/package.json not found!"
+            exit 1
+          fi
+          echo ""
+          echo "=== Reading $FRONTEND_DIR/package.json ==="
+          cat "$FRONTEND_DIR/package.json"
           echo ""
           echo "=== Verifying project ==="
-          PROJECT_NAME=$(cat "Строй/beton/frontend/package.json" | grep '"name"' | head -1 | sed 's/.*"name": *"\([^"]*\)".*/\1/')
+          PROJECT_NAME=$(cat "$FRONTEND_DIR/package.json" | grep '"name"' | head -1 | sed 's/.*"name": *"\([^"]*\)".*/\1/')
           echo "Project name found: '$PROJECT_NAME'"
           if [ "$PROJECT_NAME" != "beton-frontend" ]; then
             echo "ERROR: Wrong project name! Expected 'beton-frontend', got '$PROJECT_NAME'"
@@ -85,31 +88,50 @@ jobs:
           echo "✓ Project name verified: $PROJECT_NAME"
           echo ""
           echo "Checking build script..."
-          BUILD_SCRIPT=$(cat "Строй/beton/frontend/package.json" | grep '"build:prod"' | head -1)
+          BUILD_SCRIPT=$(cat "$FRONTEND_DIR/package.json" | grep '"build:prod"' | head -1)
           echo "Build script: $BUILD_SCRIPT"
           if ! echo "$BUILD_SCRIPT" | grep -q "vite"; then
             echo "ERROR: build:prod does not use vite!"
             exit 1
           fi
           echo "Checking for react-scripts (should NOT exist)..."
-          if grep -q "react-scripts" "Строй/beton/frontend/package.json"; then
+          if grep -q "react-scripts" "$FRONTEND_DIR/package.json"; then
             echo "ERROR: react-scripts found in package.json! This is wrong project."
             exit 1
           fi
           echo "✓ No react-scripts found"
           echo "Checking for vite (should exist)..."
-          if ! grep -q "vite" "Строй/beton/frontend/package.json"; then
+          if ! grep -q "vite" "$FRONTEND_DIR/package.json"; then
             echo "ERROR: vite not found in package.json!"
             exit 1
           fi
           echo "✓ Vite found"
           echo ""
+          echo "Frontend directory: $FRONTEND_DIR"
+          export FRONTEND_DIR
+          echo ""
           echo "=== All verifications passed ==="
 
       - name: Install dependencies
-        working-directory: ./Строй/beton/frontend
         run: |
           echo "=== Force clean install ==="
+          echo "Current directory: $(pwd)"
+          echo "Listing root directory:"
+          ls -la
+          echo ""
+          echo "=== Finding frontend directory ==="
+          if [ -d "Строй/beton/frontend" ]; then
+            echo "Found: Строй/beton/frontend"
+            cd "Строй/beton/frontend"
+          elif [ -d "frontend" ]; then
+            echo "Found: frontend (root level)"
+            cd frontend
+          else
+            echo "ERROR: frontend directory not found!"
+            echo "Available directories:"
+            find . -type d -name "frontend" 2>/dev/null | head -10
+            exit 1
+          fi
           echo "Current directory: $(pwd)"
           echo "Listing directory contents:"
           ls -la
@@ -160,14 +182,32 @@ jobs:
           cat package.json | grep -E '"name"|"build:prod"'
 
       - name: Build
-        working-directory: ./Строй/beton/frontend
         run: |
           echo "=== Build Step ==="
           echo "Current directory: $(pwd)"
           echo "Repository: ${{ github.repository }}"
           echo "Branch: ${{ github.ref_name }}"
           echo ""
+          echo "=== Finding frontend directory ==="
+          echo "Listing root directory:"
+          ls -la
+          echo ""
+          echo "Checking for Строй/beton/frontend..."
+          if [ -d "Строй/beton/frontend" ]; then
+            echo "Found: Строй/beton/frontend"
+            cd "Строй/beton/frontend"
+          elif [ -d "frontend" ]; then
+            echo "Found: frontend (root level)"
+            cd frontend
+          else
+            echo "ERROR: frontend directory not found!"
+            echo "Available directories:"
+            find . -type d -name "frontend" 2>/dev/null | head -10
+            exit 1
+          fi
+          echo ""
           echo "=== CRITICAL: Verifying we're in the right directory ==="
+          echo "Current directory: $(pwd)"
           if [ ! -f "package.json" ]; then
             echo "ERROR: package.json not found in current directory!"
             echo "Current directory contents:"
@@ -237,8 +277,19 @@ jobs:
         uses: actions/configure-pages@v4
 
       - name: Verify build output
-        working-directory: ./Строй/beton/frontend
         run: |
+          echo "=== Finding frontend directory ==="
+          if [ -d "Строй/beton/frontend" ]; then
+            echo "Found: Строй/beton/frontend"
+            cd "Строй/beton/frontend"
+          elif [ -d "frontend" ]; then
+            echo "Found: frontend (root level)"
+            cd frontend
+          else
+            echo "ERROR: frontend directory not found!"
+            exit 1
+          fi
+          echo "Current directory: $(pwd)"
           if [ ! -d "dist" ]; then
             echo "ERROR: dist directory not found after build!"
             exit 1
@@ -250,10 +301,32 @@ jobs:
           echo "✓ Build output verified"
           ls -la dist/
 
+      - name: Find dist directory
+        id: find-dist
+        run: |
+          echo "=== Finding dist directory ==="
+          DIST_DIR=""
+          if [ -d "Строй/beton/frontend/dist" ]; then
+            DIST_DIR="Строй/beton/frontend/dist"
+            echo "Found: Строй/beton/frontend/dist"
+          elif [ -d "frontend/dist" ]; then
+            DIST_DIR="frontend/dist"
+            echo "Found: frontend/dist"
+          else
+            echo "ERROR: dist directory not found!"
+            echo "Searching for dist directories:"
+            find . -type d -name "dist" -path "*/frontend/dist" 2>/dev/null | head -10
+            exit 1
+          fi
+          echo "Dist directory: $DIST_DIR"
+          echo "Contents:"
+          ls -la "$DIST_DIR"
+          echo "dist_path=$DIST_DIR" >> $GITHUB_OUTPUT
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './Строй/beton/frontend/dist'
+          path: ${{ steps.find-dist.outputs.dist_path }}
 
   deploy:
     environment:
