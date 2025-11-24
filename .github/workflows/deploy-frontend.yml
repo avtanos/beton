@@ -296,22 +296,42 @@ jobs:
             echo "WARNING: node_modules directory not found! Installing dependencies..."
             NODE_ENV="" npm install --no-audit --no-fund --legacy-peer-deps
           fi
-          if ! npm list vite > /dev/null 2>&1; then
+          
+          # Check if vite is installed by checking for the binary or package.json
+          VITE_INSTALLED=false
+          if [ -f "node_modules/vite/package.json" ] || [ -f "node_modules/.bin/vite" ]; then
+            VITE_INSTALLED=true
+            echo "✓ Vite found in node_modules"
+          elif npx vite --version > /dev/null 2>&1; then
+            VITE_INSTALLED=true
+            echo "✓ Vite found via npx"
+          fi
+          
+          if [ "$VITE_INSTALLED" = "false" ]; then
             echo "WARNING: Vite is not installed! Installing all dependencies..."
-            echo "Installed packages before:"
-            npm list --depth=0 | head -20 || echo "No packages installed"
             echo "Installing with NODE_ENV unset to ensure devDependencies are installed..."
             NODE_ENV="" npm install --no-audit --no-fund --legacy-peer-deps
-            echo "Installed packages after:"
-            npm list --depth=0 | head -20
-            if ! npm list vite > /dev/null 2>&1; then
-              echo "ERROR: Vite is still not installed after npm install!"
+            echo "Verifying installation..."
+            if [ -f "node_modules/vite/package.json" ] || [ -f "node_modules/.bin/vite" ]; then
+              echo "✓ Vite installed successfully"
+            elif npx vite --version > /dev/null 2>&1; then
+              echo "✓ Vite available via npx"
+            else
+              echo "ERROR: Vite is still not available after npm install!"
               echo "Trying to install vite explicitly..."
               npm install vite@^5.0.8 --save-dev --no-audit --no-fund --legacy-peer-deps
             fi
           fi
-          echo "✓ Vite is installed"
-          npm list vite --depth=0
+          
+          echo "=== Verifying vite version ==="
+          if [ -f "node_modules/vite/package.json" ]; then
+            VITE_VERSION=$(cat node_modules/vite/package.json | grep '"version"' | head -1 | sed 's/.*"version": *"\([^"]*\)".*/\1/')
+            echo "Vite version: $VITE_VERSION"
+          elif npx vite --version 2>&1; then
+            echo "Vite is available via npx"
+          else
+            echo "WARNING: Could not determine vite version"
+          fi
           echo ""
           echo "=== Verifying all devDependencies ==="
           npm list --depth=0 | grep -E "vite|@vitejs|typescript|eslint" || echo "Some dev dependencies may be missing"
