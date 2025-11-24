@@ -22,7 +22,8 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('access_token')
-      window.location.href = '/login'
+      const basePath = import.meta.env.VITE_BASE_PATH || '/beton/'
+      window.location.href = `${basePath}login`
     }
     return Promise.reject(error)
   }

@@ -34,8 +34,8 @@ git add .
 # Создайте первый коммит
 git commit -m "Initial commit: АСУ ТП Бетонного завода"
 
-# Добавьте remote (замените your-username на ваш GitHub username)
-git remote add origin https://github.com/your-username/beton.git
+# Добавьте remote
+git remote add origin https://github.com/avtanos/beton.git
 
 # Переименуйте ветку в main (если нужно)
 git branch -M main
@@ -77,8 +77,8 @@ base: '/'
 
 ### 6. Обновите README.md
 
-Замените в README.md:
-- `your-username` на ваш GitHub username
+Обновите в README.md:
+- Ссылки на GitHub репозиторий
 - `your-backend-api.com` на ваш реальный API URL (если есть)
 
 ### 7. Проверьте деплой
@@ -86,7 +86,7 @@ base: '/'
 1. После push в `main`, GitHub Actions автоматически запустится
 2. Проверьте статус в **Actions** вкладке
 3. После успешного деплоя сайт будет доступен по адресу:
-   - `https://your-username.github.io/beton/`
+   - `https://avtanos.github.io/beton/`
 
 ## 📝 Дополнительные настройки
 

@@ -10,18 +10,25 @@
 1. Репозиторий должен быть публичным (или использовать GitHub Pro)
 2. Включите GitHub Pages в настройках репозитория (Settings → Pages)
 3. Выберите источник: "GitHub Actions"
+4. Workflow файл уже создан в `.github/workflows/deploy.yml`
 
 **Настройка base path:**
 
-Если ваш репозиторий называется `beton`, в `frontend/vite.config.ts` должно быть:
-```typescript
-base: '/beton/'
-```
+Если ваш репозиторий называется `beton`, base path уже настроен как `/beton/` в:
+- `frontend/vite.config.production.ts`
+- `frontend/src/main.tsx` (BrowserRouter basename)
 
-Если репозиторий называется `username.github.io`, используйте:
-```typescript
-base: '/'
-```
+Если репозиторий называется `username.github.io`, измените:
+- В `.github/workflows/deploy.yml`: `VITE_BASE_PATH: /`
+- В `frontend/vite.config.production.ts`: `base: '/'`
+- В `frontend/src/main.tsx`: `basename: '/'`
+
+**Как это работает:**
+1. При push в `main`/`master` автоматически запускается workflow
+2. Устанавливаются зависимости Node.js
+3. Собирается production build с правильным base path
+4. Результат деплоится на GitHub Pages
+5. Сайт доступен по адресу: `https://username.github.io/beton/`
 
 ### Ручной деплой
 
@@ -69,7 +76,7 @@ npm run build
 ```env
 DATABASE_URL=postgresql://user:password@localhost/beton_plant
 SECRET_KEY=your-very-secret-key-change-this-in-production
-CORS_ORIGINS=https://your-username.github.io,https://your-domain.com
+CORS_ORIGINS=https://avtanos.github.io,https://your-domain.com
 ```
 
 ### Frontend
@@ -88,7 +95,7 @@ VITE_API_URL=https://your-backend-api.com/api
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://your-username.github.io",
+        "https://avtanos.github.io",
         "https://your-domain.com"
     ],
     allow_credentials=True,

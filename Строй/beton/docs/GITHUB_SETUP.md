@@ -19,7 +19,7 @@ git add .
 git commit -m "Initial commit: АСУ ТП Бетонного завода"
 
 # Добавление remote
-git remote add origin https://github.com/your-username/beton.git
+git remote add origin https://github.com/avtanos/beton.git
 
 # Push в main ветку
 git branch -M main
@@ -58,13 +58,13 @@ base: '/'
 1. После push в `main` ветку, GitHub Actions автоматически запустится
 2. Проверьте статус в **Actions** вкладке
 3. После успешного деплоя, сайт будет доступен по адресу:
-   - `https://your-username.github.io/beton/`
+   - `https://avtanos.github.io/beton/`
 
 ## Шаг 7: Обновление README
 
-Не забудьте обновить ссылки в README.md:
-- Замените `your-username` на ваш GitHub username
-- Обновите ссылки на демо и документацию
+Проверьте ссылки в README.md:
+- Все ссылки обновлены на avtanos
+- Обновите ссылки на демо и документацию при необходимости
 
 ## Полезные команды Git
 

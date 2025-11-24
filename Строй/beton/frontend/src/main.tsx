@@ -14,10 +14,13 @@ const queryClient = new QueryClient({
   },
 })
 
+// Получаем base path из переменной окружения или используем дефолтный
+const basePath = import.meta.env.VITE_BASE_PATH || '/beton/'
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <BrowserRouter basename={basePath}>
         <App />
       </BrowserRouter>
     </QueryClientProvider>

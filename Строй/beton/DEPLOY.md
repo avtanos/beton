@@ -10,7 +10,7 @@
    git add .
    git commit -m "Initial commit"
    git branch -M main
-   git remote add origin https://github.com/your-username/beton.git
+   git remote add origin https://github.com/avtanos/beton.git
    git push -u origin main
    ```
 
@@ -69,7 +69,7 @@ sudo apt update
 sudo apt install python3 python3-pip postgresql nginx
 
 # Клонирование репозитория
-git clone https://github.com/your-username/beton.git
+git clone https://github.com/avtanos/beton.git
 cd beton/backend
 
 # Создание виртуального окружения
@@ -110,7 +110,7 @@ sudo systemctl start beton-backend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://your-username.github.io",
+        "https://avtanos.github.io",
         "https://your-domain.com"
     ],
     allow_credentials=True,
@@ -126,7 +126,7 @@ app.add_middleware(
 ```env
 DATABASE_URL=postgresql://user:password@localhost/beton_plant
 SECRET_KEY=your-very-secret-key-change-this
-CORS_ORIGINS=https://your-username.github.io
+CORS_ORIGINS=https://avtanos.github.io
 ```
 
 ## Инициализация БД на продакшене
