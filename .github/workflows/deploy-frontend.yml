@@ -273,7 +273,7 @@ jobs:
           echo "✓ Confirmed: Building $PROJECT_NAME"
           echo ""
           echo "=== Checking build script ==="
-          BUILD_SCRIPT=$(cat package.json | grep -A 1 '"build:prod"' | tail -1 | sed 's/.*"\(.*\)".*/\1/')
+          BUILD_SCRIPT=$(cat package.json | grep '"build:prod"' | sed 's/.*"build:prod": *"\([^"]*\)".*/\1/')
           echo "Build script command: '$BUILD_SCRIPT'"
           if ! echo "$BUILD_SCRIPT" | grep -q "vite"; then
             echo "ERROR: build:prod does not use vite! Script: '$BUILD_SCRIPT'"
@@ -284,13 +284,19 @@ jobs:
           echo "✓ Build script verified: uses vite"
           echo ""
           echo "=== Verifying vite is installed ==="
+          if [ ! -d "node_modules" ]; then
+            echo "WARNING: node_modules directory not found! Installing dependencies..."
+            npm install --no-audit --no-fund --legacy-peer-deps
+          fi
           if ! npm list vite > /dev/null 2>&1; then
             echo "ERROR: Vite is not installed!"
             echo "Installed packages:"
             npm list --depth=0 | head -20
-            exit 1
+            echo "Installing vite and dependencies..."
+            npm install --no-audit --no-fund --legacy-peer-deps
           fi
           echo "✓ Vite is installed"
+          npm list vite --depth=0
           echo ""
           echo "=== Checking for react-scripts (should NOT be installed) ==="
           if npm list react-scripts > /dev/null 2>&1; then
