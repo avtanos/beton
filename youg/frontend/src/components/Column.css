@@ -1,0 +1,153 @@
+.column {
+  display: flex;
+  flex-direction: column;
+  min-width: 320px;
+  max-width: 320px;
+  background: #ebeff3;
+  border-radius: 12px;
+  height: fit-content;
+  max-height: calc(100vh - 200px);
+}
+
+.column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid #dce1e6;
+}
+
+.column-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.column-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.column-title h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.task-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  background: white;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #7f8c8d;
+}
+
+.add-task-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: white;
+  border: none;
+  border-radius: 6px;
+  color: #7f8c8d;
+  transition: all 0.2s;
+}
+
+.add-task-btn:hover {
+  background: #3498db;
+  color: white;
+}
+
+.column-content {
+  padding: 8px;
+  overflow-y: auto;
+  min-height: 100px;
+  transition: background 0.2s;
+}
+
+.column-content.dragging-over {
+  background: #d5dce3;
+}
+
+.column-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.column-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.column-content::-webkit-scrollbar-thumb {
+  background: #bdc3c7;
+  border-radius: 3px;
+}
+
+.add-task-form {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 8px;
+}
+
+.add-task-form textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: 8px;
+  border: 1px solid #dce1e6;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+  outline: none;
+  margin-bottom: 8px;
+}
+
+.add-task-form textarea:focus {
+  border-color: #3498db;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-create {
+  padding: 6px 12px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-create:hover {
+  background: #2980b9;
+}
+
+.btn-cancel {
+  padding: 6px 12px;
+  background: transparent;
+  color: #7f8c8d;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #f5f7fa;
+}
+
