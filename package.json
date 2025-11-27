@@ -1,49 +1,30 @@
 {
-  "name": "rupoi-dashboard",
+  "name": "beton",
   "version": "1.0.0",
-  "description": "Дашборд для РУПОИ - система управления ортопедическими услугами",
-  "homepage": "https://avtanos.github.io/rupio",
+  "description": "Автоматизированная система управления технологическим процессом бетонного завода",
   "private": true,
-  "dependencies": {
-    "@types/node": "^16.18.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.8.0",
-    "react-scripts": "5.0.1",
-    "typescript": "^4.9.0",
-    "recharts": "^2.5.0",
-    "lucide-react": "^0.263.1",
-    "clsx": "^1.2.1"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/avtanos/beton.git"
   },
+  "keywords": [
+    "бетон",
+    "автоматизация",
+    "АСУ ТП",
+    "IoT",
+    "AI",
+    "FastAPI",
+    "React",
+    "производство"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "build:prod": "set CI=false && react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ],
-    "rules": {
-      "@typescript-eslint/no-unused-vars": "warn",
-      "no-duplicate-case": "warn"
-    }
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "install:backend": "cd backend && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
+    "install:frontend": "cd frontend && npm install",
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "dev:backend": "cd backend && source venv/bin/activate && uvicorn backend.main:app --reload",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build"
   }
 }
